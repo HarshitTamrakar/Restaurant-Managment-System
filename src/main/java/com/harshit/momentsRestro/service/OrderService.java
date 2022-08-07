@@ -2,6 +2,7 @@ package com.harshit.momentsRestro.service;
 
 import com.harshit.momentsRestro.entity.DeliveryBoy;
 import com.harshit.momentsRestro.entity.Order;
+import com.harshit.momentsRestro.entity.OrderItem;
 import com.harshit.momentsRestro.entity.Payment;
 import com.harshit.momentsRestro.exception.InvalidPaymentException;
 import com.harshit.momentsRestro.exception.OrderAlreadyPaidException;
@@ -10,6 +11,8 @@ import com.harshit.momentsRestro.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 @Service
 @RequestMapping("/order")
@@ -68,11 +71,26 @@ public class OrderService {
 
     public Order deliverOrder(long orderId, DeliveryBoy deliveryBoy) throws OrderNotFoundException, OrderAlreadyPaidException {
         Order order = getOrder(orderId);
-        if(order.getDeliveryBoy() != null){
+        if (order.getDeliveryBoy() != null) {
             throw new OrderAlreadyPaidException("Order already paid");
         }
         order.setDeliveryBoy(deliveryBoy);
         order.setStatus(Order.Status.COMPLETED.name());
         return orderRepository.save(order);
+    }
+
+    public Order addOrderItem(long orderId, OrderItem orderItem) throws OrderNotFoundException {
+        Order order = getOrder(orderId);
+        order.getOrderItemList().add(orderItem);
+        return updateOrder(orderId, order);
+    }
+
+    public List<OrderItem> getOrderItems(long orderId) throws OrderNotFoundException {
+        return getOrder(orderId).getOrderItemList();
+    }
+
+    public boolean deleteOrderItem(long orderId, OrderItem orderItem) throws OrderNotFoundException {
+        Order order = getOrder(orderId);
+        return order.getOrderItemList().remove(orderItem);
     }
 }
